@@ -6,6 +6,8 @@ eppa <- '/chm_e5_tax50.put'
 eppa_data <- eppa_to_tibble(eppa)
 
 data <- eppa_data %>%
+  # Convert CO2 to Gt
+  mutate(value = if_else(gas == "CO2", value / 1000, value)) %>%
   # Changes to gas names to match GCAM
   mutate(gas = if_else(gas == "CO2" & variable == "n_ag", "ffi_emissions", gas),
          gas = if_else(gas == "CO2" & variable == "agr", "luc_emissions", gas),
@@ -19,4 +21,5 @@ data <- eppa_data %>%
   group_by(year, gas) %>%
   summarise(value = sum(value)) %>%
   ungroup() %>%
-  spread(gas, value)
+  spread(gas, value) %>%
+  write_csv("output/eppa_emissions_for_hector.csv")
